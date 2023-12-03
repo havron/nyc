@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Button from '@mui/material/Button';
 import { DataGrid } from '@mui/x-data-grid';
 import SubwayIcon from '@mui/icons-material/Subway';
+import { Chip, Link } from "@mui/material";
+import { LineChart } from "@mui/x-charts";
 
 
 interface GeoRef {
@@ -43,11 +45,12 @@ function reviver(key: string, value: any): any {
     }
 }
 
+
+
 export default function SubwayRidership () {
     const [showSubwayRidership, setShowSubwayRidership] = useState(false);
     const [data, setData] = useState<SubwayRidershipType[]>();
-    // https://data.ny.gov/Transportation/MTA-Subway-Hourly-Ridership-Beginning-February-202/wujg-7c2s
-
+    const [groupedData, setGroupedData] = useState<Record<number, SubwayRidershipType[]>>();
     const fetchSubwayRidershipData = () => {
         if (data == null) {
             fetch('https://data.ny.gov/resource/wujg-7c2s.json')
@@ -61,14 +64,20 @@ export default function SubwayRidership () {
     };
     return (
         <>
+        <Suspense fallback={<div>Loading...</div>}>
         <Button onClick={fetchSubwayRidershipData} variant="contained" disabled={showSubwayRidership}>See hourly subway ridership data
                 <SubwayIcon sx={{ marginLeft: 1 }} />
         </Button>
+        </Suspense>
         {data != null && showSubwayRidership && (
             <>
             <br />
             <Button onClick={() => setShowSubwayRidership(false)} variant="outlined">Hide subway ridership data
             </Button>
+            <Link sx={{pl : 1}} href="https://data.ny.gov/Transportation/MTA-Subway-Hourly-Ridership-Beginning-February-202/wujg-7c2s" target="_blank">
+                <Chip label="data" color="default" size="small" />
+            </Link>
+            <br />
             <DataGrid
                 rows={data}
                 getRowId={row => row.itsuid}
