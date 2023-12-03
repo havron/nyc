@@ -1,4 +1,5 @@
-import { Suspense, useState } from "react";
+import React from "react";
+import { useState } from "react";
 import Button from '@mui/material/Button';
 import { DataGrid } from '@mui/x-data-grid';
 import SubwayIcon from '@mui/icons-material/Subway';
@@ -50,10 +51,12 @@ function reviver(key: string, value: any): any {
 export default function SubwayRidership () {
     const [showSubwayRidership, setShowSubwayRidership] = useState(false);
     const [data, setData] = useState<SubwayRidershipType[]>();
-    const [groupedData, setGroupedData] = useState<Record<number, SubwayRidershipType[]>>();
+    const limit = 2500;
+    const days = 14;
     const fetchSubwayRidershipData = () => {
         if (data == null) {
-            fetch('https://data.ny.gov/resource/wujg-7c2s.json')
+            const last_month = new Date(new Date().setDate(new Date().getDate() - days)).toISOString().split('T')[0];
+            fetch(`https://data.ny.gov/resource/wujg-7c2s.json?$where=transit_timestamp%20%3E%20"${last_month}"&$limit=${limit}`)
             .then(response => response.text())
             .then((data) => {
                 const parsed: SubwayRidershipType[] = JSON.parse(data, reviver) as SubwayRidershipType[];
@@ -64,11 +67,10 @@ export default function SubwayRidership () {
     };
     return (
         <>
-        <Suspense fallback={<div>Loading...</div>}>
         <Button onClick={fetchSubwayRidershipData} variant="contained" disabled={showSubwayRidership}>See hourly subway ridership data
                 <SubwayIcon sx={{ marginLeft: 1 }} />
         </Button>
-        </Suspense>
+        <React.Suspense fallback={<div>Loading...</div>}>
         {data != null && showSubwayRidership && (
             <>
             <br />
@@ -103,6 +105,7 @@ export default function SubwayRidership () {
             />
         </>
         )}
+        </React.Suspense>
         </>
     );
 }
